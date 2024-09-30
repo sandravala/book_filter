@@ -2,10 +2,10 @@ package com.sv.book_search.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +25,21 @@ public class Book {
     @Column(name = "publication_year")
     private int publicationYear;
 
-    private double rating;
-    private String description;
+    @Builder.Default
+    private String description = "No description available";
     private String genre;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<Rating> ratings = new ArrayList<>();
+
+    public double getAverageRating() {
+        return ratings.stream()
+                .mapToDouble(Rating::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+
 }
