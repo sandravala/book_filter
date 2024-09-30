@@ -20,59 +20,12 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
-    public List<BookWithAverageRatingDTO> getAllBooks() {
-        List<Book> books = bookRepository.findAll();
-        return booksToDTO(books);
-    }
+    public List<BookWithAverageRatingDTO> filterBooks (String title, Integer minRating, Integer maxRating, Integer year, String author, String genre, List<String> keywords) {
+        Specification<Book> spec = BookSpecifications.filterBooks(title, minRating, maxRating, year, author, genre, keywords);
 
-    public List<BookWithAverageRatingDTO> getBooksByTitle(String title) {
-
-        List<Book> books = bookRepository.findByTitleContainingIgnoreCase(title);
-
-        return booksToDTO(books);
-
-    }
-
-    public List<BookWithAverageRatingDTO> getBooksByYear(Integer year) {
-
-        List<Book> books = bookRepository.findByPublicationYear(year);
-
-        return booksToDTO(books);
-
-    }
-
-    public List<BookWithAverageRatingDTO> getBooksByAuthor(String author) {
-
-        List<Book> books = bookRepository.findByAuthorContainingIgnoreCase(author);
-
-        return booksToDTO(books);
-
-    }
-
-    public List<BookWithAverageRatingDTO> getBooksByGenre(String genre) {
-
-        List<Book> books = bookRepository.findByGenreIgnoreCase(genre);
-
-        return booksToDTO(books);
-
-    }
-
-    public List<BookWithAverageRatingDTO> getBooksByWordsInDescription(List<String> keywords) {
-
-        Specification<Book> spec = BookSpecifications.descriptionContainsAllKeywords(keywords);
         List<Book> books = bookRepository.findAll(spec);
+
         return booksToDTO(books);
-
-    }
-
-    public List<BookWithAverageRatingDTO> getBooksByRating(Optional<Double> minRatingOpt, Optional<Double> maxRatingOpt) {
-        double minRating = minRatingOpt.orElse(0.0);
-        double maxRating = maxRatingOpt.orElse(5.0);
-        List<Book> books = bookRepository.findAll();
-        List<BookWithAverageRatingDTO> allBooksDTO = booksToDTO(books);
-        return allBooksDTO.stream()
-                .filter(bookDTO -> bookDTO.getAverageRating() >= minRating && bookDTO.getAverageRating() <= maxRating)
-                .collect(Collectors.toList());
     }
 
     private BookWithAverageRatingDTO getBookDTO(Book book) {
@@ -90,7 +43,6 @@ public class BookService {
     private List<BookWithAverageRatingDTO> booksToDTO(List<Book> books) {
 
         return books.stream().map(book -> {
-            List<Rating> ratings = book.getRatings() != null ? book.getRatings() : Collections.emptyList();
             return getBookDTO(book);
         }).collect(Collectors.toList());
     }
